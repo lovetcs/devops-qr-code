@@ -26,10 +26,12 @@ app.add_middleware(
 # AWS S3 Configuration
 s3 = boto3.client(
     's3',
-    aws_access_key_id= os.getenv("AWS_ACCESS_KEY"),
-    aws_secret_access_key= os.getenv("AWS_SECRET_KEY"))
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    region_name="eu-west-2"  # Update with your bucket's region
+)
 
-bucket_name = 'YOUR_BUCKET_NAME' # Add your bucket name here
+bucket_name = 'capstoneb'  # Your bucket name
 
 @app.post("/generate-qr/")
 async def generate_qr(url: str):
@@ -52,14 +54,19 @@ async def generate_qr(url: str):
 
     # Generate file name for S3
     file_name = f"qr_codes/{url.split('//')[-1]}.png"
+    
+    # Debugging: print the file name and image size
+    print(f"File name: {file_name}")
+    print(f"QR Code image size: {img.size}")
 
     try:
-        # Upload to S3
-        s3.put_object(Bucket=bucket_name, Key=file_name, Body=img_byte_arr, ContentType='image/png', ACL='public-read')
+        # Upload to S3 without specifying ACL (removes the public-read ACL)
+        s3.put_object(Bucket=bucket_name, Key=file_name, Body=img_byte_arr, ContentType='image/png')
         
         # Generate the S3 URL
         s3_url = f"https://{bucket_name}.s3.amazonaws.com/{file_name}"
         return {"qr_code_url": s3_url}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
     
+    except Exception as e:
+        print(f"Error uploading to S3: {e}")
+        raise HTTPException(status_code=500, detail=f"Error uploading to S3: {e}")
