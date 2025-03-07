@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./api  
+    image: devops-qr-code-backend:latest
+    container_name: devops-qr-code-backend
+    ports:
+      - "8000:8000"  
+    volumes:
+      - ./api:/app 
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./front-end-nextjs  
+    image: devops-qr-code-frontend:latest
+    container_name: devops-qr-code-frontend
+    ports:
+      - "3000:3000"  
+    volumes:
+      - ./front-end-nextjs:/app 
+      - /app/node_modules  
+      - /app/.next 
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
