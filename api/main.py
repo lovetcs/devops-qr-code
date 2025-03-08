@@ -14,6 +14,8 @@ app = FastAPI()
 # Allowing CORS for local testing
 origins = [
     "http://localhost:3000"
+    "https://devops-qr-code.vercel.app/"
+
 ]
 
 app.add_middleware(
